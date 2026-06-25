@@ -1,0 +1,33 @@
+name: 每日自動爬蟲
+
+on:
+  schedule:
+    - cron: '0 10 * * *'   # 每天台灣時間 18:00 (UTC 10:00)
+  workflow_dispatch:        # 允許手動執行
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 下載程式碼
+        uses: actions/checkout@v3
+
+      - name: 設定 Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: 安裝套件
+        run: pip install -r requirements.txt
+
+      - name: 執行爬蟲
+        run: python crawler.py
+
+      - name: 提交更新到倉庫
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add events.json
+          git commit -m "自動更新活動資料 $(date '+%Y-%m-%d %H:%M:%S')" || echo "無變更"
+          git push
